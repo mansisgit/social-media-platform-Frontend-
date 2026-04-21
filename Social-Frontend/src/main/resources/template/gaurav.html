@@ -93,7 +93,7 @@
         .run-badge { opacity: 0; background: var(--primary); color: white; padding: 5px 12px; font-weight: 700; font-size: 0.75rem; border: none; cursor: pointer; border-radius: 6px; transition: 0.2s; }
         .endpoint-row:hover .run-badge { opacity: 1; }
 
-        /* ----- MAIN CONTENT ----- */
+       
         .main-content {
             flex-grow: 1;
             display: flex;
@@ -303,7 +303,7 @@
             <form th:action="@{/gaurav/execute}" method="POST">
                 <input type="hidden" name="endpoint" th:value="${configureEndpoint}">
 
-                <!-- PARAMETERS -->
+                
                 <div th:if="${configureEndpoint == 'get-all-users' or configureEndpoint == 'get-all-posts' or configureEndpoint == 'get-me'}">
                     <p style="margin-bottom: 20px; color: var(--text-muted);">No parameters required.</p>
                 </div>
@@ -358,7 +358,7 @@
         const sidebarList = document.querySelector('.endpoints-list');
         const mainContent = document.querySelector('.main-content');
         
-        // Restore scroll positions
+       
         if(sessionStorage.getItem('dekho_sidebarScroll')) {
             sidebarList.scrollTop = sessionStorage.getItem('dekho_sidebarScroll');
         }
