@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gaurav | Administration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #eef2ff; /* Faint Indigo */
+            --bg-sidebar: #eef2ff;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            
+            --primary: #4f46e5;
+            --primary-light: #eef2ff;
+            
+            --btn-run: #4f46e5;
+            --btn-run-hover: #4338ca;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            display: flex; height: 100vh; overflow: hidden;
+            background: var(--bg-main); color: var(--text-main); 
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* ----- SIDEBAR ----- */
+        .sidebar {
+            width: 420px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.02);
+        }
+        .sidebar-header {
+            padding: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h1 { font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px;}
+        .back-link {
+            text-decoration: none; color: var(--primary); font-weight: 700; font-size: 0.85rem;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .endpoints-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .category-title {
+            padding: 10px 25px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); 
+            text-transform: uppercase; letter-spacing: 1.5px; margin-top: 15px;
+        }
+
+        .endpoint-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px;
+            transition: all 0.2s;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        .endpoint-row:hover {
+            background: var(--bg-main);
+        }
+        .endpoint-row.active {
+            background: var(--primary-light);
+            border-left-color: var(--primary);
+        }
+
+        .method {
+            padding: 4px 8px; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;
+            margin-right: 12px; min-width: 55px; text-align: center; border-radius: 6px;
+        }
+        .method.get { background: #dcfce7; color: #166534; }
+        .method.post { background: #dbeafe; color: #1e40af; }
+        .method.put { background: #fef3c7; color: #92400e; }
+        .method.delete { background: #fee2e2; color: #991b1b; }
+
+        .path { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; color: var(--text-main); flex-grow: 1; }
+
+        .run-badge { opacity: 0; background: var(--primary); color: white; padding: 5px 12px; font-weight: 700; font-size: 0.75rem; border: none; cursor: pointer; border-radius: 6px; transition: 0.2s; }
+        .endpoint-row:hover .run-badge { opacity: 1; }
+
+        /* ----- MAIN CONTENT ----- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 50px 80px;
+        }
+
+        .main-content h2 {
+            font-size: 2.2rem; font-weight: 800; margin-bottom: 40px; color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .stats-row {
+            display: flex; gap: 20px; margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white; padding: 25px; border: 1px solid var(--border);
+            border-radius: var(--radius); text-align: left; flex: 1;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .stat-lab { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-top: 4px; }
+
+        .config-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            max-width: 900px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+        }
+
+        .config-card h3 {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 30px; color: var(--text-main);
+        }
+
+        .attribution-badge {
+            display: inline-block; background: var(--primary-light); color: var(--primary);
+            font-size: 0.7rem; font-weight: 800; padding: 6px 12px; border-radius: 20px;
+            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+        input, textarea {
+            width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-family: inherit; font-size: 0.95rem; color: var(--text-main); background: #fdfdfd;
+        }
+        input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--primary-light); }
+
+        .submit-btn {
+            background: var(--btn-run); color: white; padding: 14px 25px; border: none;
+            font-weight: 700; font-family: inherit; font-size: 1rem; cursor: pointer;
+            width: 100%; border-radius: 8px;
+        }
+        .submit-btn:hover { background: var(--btn-run-hover); }
+
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .data-table th { padding: 15px; text-align: left; font-weight: 700; color: var(--text-muted); border-bottom: 2px solid var(--border); }
+        .data-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        
+        .alert-success { background: #ecfdf5; border: 1px solid #d1fae5; color: #065f46; padding: 25px; border-radius: 12px; font-weight: 700; text-align: center;}
+
+        /* Aggressive Hide number spinners */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+    </style>
+</head>
+<body>
+
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Gaurav Console</h1>
+            <a href="/team/dashboard" class="back-link">← System Overview</a>
+        </div>
+        <div class="endpoints-list">
+            
+            <div class="category-title">User Administration</div>
+            
+            <a href="?action=get-all-users" class="endpoint-row" th:classappend="${configureEndpoint == 'get-all-users'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/users/all</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-user" class="endpoint-row" th:classappend="${configureEndpoint == 'get-user'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/users/{id}</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-user-by-username" class="endpoint-row" th:classappend="${configureEndpoint == 'get-user-by-username'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/users/username/{un}</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=search-users" class="endpoint-row" th:classappend="${configureEndpoint == 'search-users'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/users/search</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-me" class="endpoint-row" th:classappend="${configureEndpoint == 'get-me'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/users/me</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=update-user" class="endpoint-row" th:classappend="${configureEndpoint == 'update-user'} ? 'active' : ''">
+                <span class="method put">PUT</span> <span class="path">/api/v1/users/{id}</span> <button class="run-badge">Run</button>
+            </a>
+
+            <div class="category-title">Post Management</div>
+            
+            <a href="?action=get-all-posts" class="endpoint-row" th:classappend="${configureEndpoint == 'get-all-posts'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/posts/all</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-user-posts" class="endpoint-row" th:classappend="${configureEndpoint == 'get-user-posts'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/posts/username/{un}</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-single-post" class="endpoint-row" th:classappend="${configureEndpoint == 'get-single-post'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/posts/{id}</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-post-by-user-and-id" class="endpoint-row" th:classappend="${configureEndpoint == 'get-post-by-user-and-id'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/posts/username/{un}/{id}</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=search-posts" class="endpoint-row" th:classappend="${configureEndpoint == 'search-posts'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/posts/search</span> <button class="run-badge">Run</button>
+            </a>
+
+            <a href="?action=create-post" class="endpoint-row" th:classappend="${configureEndpoint == 'create-post'} ? 'active' : ''">
+                <span class="method post">POST</span> <span class="path">/api/v1/posts/create</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=update-post" class="endpoint-row" th:classappend="${configureEndpoint == 'update-post'} ? 'active' : ''">
+                <span class="method put">PUT</span> <span class="path">/api/v1/posts/id/{id}</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=delete-post" class="endpoint-row" th:classappend="${configureEndpoint == 'delete-post'} ? 'active' : ''">
+                <span class="method delete">DEL</span> <span class="path">/api/v1/posts/id/{id}</span> <button class="run-badge">Run</button>
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <h2>Admin Console</h2>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-val" th:text="${statPosts}">0</div>
+                <div class="stat-lab">Total My Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" th:text="${activeUserId}">1</div>
+                <div class="stat-lab">Active User ID</div>
+            </div>
+        </div>
+
+        <!-- Mode: RESULT -->
+        <div th:if="${mode == 'result'}" class="config-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>System Response: <span th:text="${executedEndpoint}" style="color: var(--primary);"></span></h3>
+                <a href="/gaurav/services" style="color: var(--text-muted); text-decoration: none;">Clear</a>
+            </div>
+
+            <div th:if="${resultType == 'userList'}">
+                <table class="data-table">
+                    <tr><th>ID</th><th>Username</th><th>Email</th></tr>
+                    <tr th:each="user : ${resultData}">
+                        <td th:text="${user.userID}"></td>
+                        <td th:text="${user.username}"></td>
+                        <td th:text="${user.email}"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div th:if="${resultType == 'singleUser'}">
+                <div style="padding: 20px; background: #f8fafc; border-radius: 8px;">
+                    <p><strong>ID:</strong> <span th:text="${resultData.userID}"></span></p>
+                    <p><strong>Username:</strong> <span th:text="${resultData.username}"></span></p>
+                    <p><strong>Email:</strong> <span th:text="${resultData.email}"></span></p>
+                </div>
+            </div>
+
+            <div th:if="${resultType == 'postList'}">
+                <table class="data-table">
+                    <tr><th>ID</th><th>Content Snippet</th><th>Owner</th></tr>
+                    <tr th:each="p : ${resultData}">
+                        <td th:text="${p.postID}"></td>
+                        <td th:text="${p.content.length() > 50 ? p.content.substring(0, 50) + '...' : p.content}"></td>
+                        <td th:text="${p.user != null ? p.user.username : 'N/A'}"></td>
+                    </tr>
+                </table>
+            </div>
+
+
+
+            <div th:if="${resultType == 'singlePost'}">
+                <div style="padding: 30px; background: #f8fafc; border: 2px solid var(--primary-light); border-radius: 12px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">Post ID: <span th:text="${resultData.postID}"></span></div>
+                    <div style="font-size: 1.15rem; font-weight: 600; color: var(--text-main); margin-bottom: 15px; line-height: 1.6;" th:text="${resultData.content}"></div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700;">
+                        <span style="color: var(--text-muted);">Author:</span>
+                        <span style="color: var(--primary);" th:text="${resultData.user != null ? resultData.user.username : 'N/A'}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${resultType == 'string'}"><div class="alert-success" th:text="${resultData}"></div></div>
+            <div th:if="${resultType == 'error'}"><div class="alert-error" th:text="${resultData}"></div></div>
+        </div>
+
+        <!-- Mode: CONFIGURE -->
+        <div th:if="${mode == 'configure' and configureEndpoint != 'idle'}" class="config-card">
+            <div class="attribution-badge">ALLOCATED SERVICE: USERS & POSTS (MGMT)</div>
+            <h3>Configure Request: <span th:text="${configureEndpoint}" style="color: var(--primary);"></span></h3>
+            
+            <form th:action="@{/gaurav/execute}" method="POST">
+                <input type="hidden" name="endpoint" th:value="${configureEndpoint}">
+
+                <!-- PARAMETERS -->
+                <div th:if="${configureEndpoint == 'get-all-users' or configureEndpoint == 'get-all-posts' or configureEndpoint == 'get-me'}">
+                    <p style="margin-bottom: 20px; color: var(--text-muted);">No parameters required.</p>
+                </div>
+
+                <div th:if="${configureEndpoint == 'get-user-posts'}">
+                    <div class="form-group"><label>Target Username:</label><input type="text" name="username" placeholder="e.g. mansi" required></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'get-user'}">
+                    <div class="form-group"><label>Target User ID:</label><input type="number" name="targetUserId" placeholder="e.g. 2" required onwheel="this.blur()"></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'get-user-by-username'}">
+                    <div class="form-group"><label>Username:</label><input type="text" name="username" placeholder="e.g. johndoe" required></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'search-users' or configureEndpoint == 'search-posts'}">
+                    <div class="form-group"><label>Keyword / Query:</label><input type="text" name="keyword" required placeholder="Search..."></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'update-user'}">
+                    <p style="margin-bottom: 15px; color: var(--primary); font-size: 0.8rem; font-weight: 700;">SECURITY: Updating your OWN profile (Active ID: <span th:text="${activeUserId}"></span>)</p>
+                    <div class="form-group"><label>New Username:</label><input type="text" name="username"></div>
+                    <div class="form-group"><label>New Email:</label><input type="email" name="email"></div>
+                    <div class="form-group"><label>New Password:</label><input type="password" name="password"></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'get-single-post' or configureEndpoint == 'update-post' or configureEndpoint == 'delete-post'}">
+                    <div class="form-group"><label>Post ID:</label><input type="number" name="postID" required onwheel="this.blur()"></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'create-post' or configureEndpoint == 'update-post'}">
+                    <div class="form-group"><label>Post Content:</label><textarea name="content" rows="4" required placeholder="What's happening?"></textarea></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'get-post-by-user-and-id'}">
+                    <div class="form-group"><label>Username:</label><input type="text" name="username" placeholder="e.g. gaurav" required></div>
+                    <div class="form-group"><label>Post ID:</label><input type="number" name="postID" required onwheel="this.blur()"></div>
+                </div>
+
+                <button type="submit" class="submit-btn">Execute Operation</button>
+            </form>
+        </div>
+
+        <div th:if="${mode == 'configure' and configureEndpoint == 'idle'}" class="empty-state">
+            <p>Select an administrative operation from the sidebar.</p>
+        </div>
+
+    </div>
+    
+    <script>
+        const sidebarList = document.querySelector('.endpoints-list');
+        const mainContent = document.querySelector('.main-content');
+        
+        // Restore scroll positions
+        if(sessionStorage.getItem('dekho_sidebarScroll')) {
+            sidebarList.scrollTop = sessionStorage.getItem('dekho_sidebarScroll');
+        }
+        if(sessionStorage.getItem('dekho_mainScroll')) {
+            mainContent.scrollTop = sessionStorage.getItem('dekho_mainScroll');
+        }
+
+        // Save scroll positions before page changes
+        window.addEventListener('beforeunload', () => {
+            sessionStorage.setItem('dekho_sidebarScroll', sidebarList.scrollTop);
+            sessionStorage.setItem('dekho_mainScroll', mainContent.scrollTop);
+        });
+
+        document.querySelectorAll('.endpoint-row').forEach(row => {
+            row.addEventListener('click', () => {
+                sessionStorage.setItem('dekho_sidebarScroll', sidebarList.scrollTop);
+                sessionStorage.setItem('dekho_mainScroll', mainContent.scrollTop);
+            });
+        });
+    </script>
+</body>
+</html>

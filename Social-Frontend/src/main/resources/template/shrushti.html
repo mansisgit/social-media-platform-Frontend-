@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Shrushti | Friendship Graph</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f5f3ff; /* Faint Purple */
+            --bg-sidebar: #f5f3ff;
+            --card-bg: #ffffff;
+            --text-main: #4c1d95;
+            --text-muted: #5b21b6;
+            --border: #ddd6fe;
+            
+            --primary: #8b5cf6;
+            --primary-light: #f5f3ff;
+            
+            --btn-run: #8b5cf6;
+            --btn-run-hover: #7c3aed;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            display: flex; height: 100vh; overflow: hidden;
+            background: var(--bg-main); color: var(--text-main); 
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* ----- SIDEBAR ----- */
+        .sidebar {
+            width: 420px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.02);
+        }
+        .sidebar-header {
+            padding: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h1 { font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px;}
+        .back-link {
+            text-decoration: none; color: var(--primary); font-weight: 700; font-size: 0.85rem;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .endpoints-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .category-title {
+            padding: 10px 25px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); 
+            text-transform: uppercase; letter-spacing: 1.5px; margin-top: 15px;
+        }
+
+        .endpoint-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px;
+            transition: all 0.2s;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        .endpoint-row:hover {
+            background: var(--bg-main);
+        }
+        .endpoint-row.active {
+            background: var(--primary-light);
+            border-left-color: var(--primary);
+        }
+
+        .method {
+            padding: 4px 8px; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;
+            margin-right: 12px; min-width: 55px; text-align: center; border-radius: 6px;
+        }
+        .method.get { background: #dcfce7; color: #166534; }
+        .method.post { background: #dbeafe; color: #1e40af; }
+        .method.put { background: #fef3c7; color: #92400e; }
+        .method.patch { background: #fbecf8; color: #9d174d; }
+
+        .path { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; color: var(--text-main); flex-grow: 1; }
+
+        .run-badge { opacity: 0; background: var(--primary); color: white; padding: 5px 12px; font-weight: 700; font-size: 0.75rem; border: none; cursor: pointer; border-radius: 6px; transition: 0.2s; }
+        .endpoint-row:hover .run-badge { opacity: 1; }
+
+        /* ----- MAIN CONTENT ----- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 50px 80px;
+        }
+
+        .main-content h2 {
+            font-size: 2.2rem; font-weight: 800; margin-bottom: 40px; color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .stats-row {
+            display: flex; gap: 20px; margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white; padding: 25px; border: 1px solid var(--border);
+            border-radius: var(--radius); text-align: left; flex: 1;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .stat-lab { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-top: 4px; }
+
+        .config-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            max-width: 900px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+        }
+
+        .config-card h3 {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 30px; color: var(--text-main);
+        }
+
+        .attribution-badge {
+            display: inline-block; background: var(--primary-light); color: var(--primary);
+            font-size: 0.7rem; font-weight: 800; padding: 6px 12px; border-radius: 20px;
+            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+        input, textarea {
+            width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-family: inherit; font-size: 0.95rem; color: var(--text-main); background: #fdfdfd;
+        }
+        input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--primary-light); }
+
+        .submit-btn {
+            background: var(--btn-run); color: white; padding: 14px 25px; border: none;
+            font-weight: 700; font-family: inherit; font-size: 1rem; cursor: pointer;
+            width: 100%; border-radius: 8px;
+        }
+        .submit-btn:hover { background: var(--btn-run-hover); }
+
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .data-table th { padding: 15px; text-align: left; font-weight: 700; color: var(--text-muted); border-bottom: 2px solid var(--border); }
+        .data-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        
+        .huge-stat { font-size: 4rem; font-weight: 800; color: var(--primary); text-align: center; margin: 20px 0; }
+        .alert-error { background: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; padding: 25px; border-radius: 12px; }
+        .alert-success { background: #ecfdf5; border: 1px solid #d1fae5; color: #065f46; padding: 25px; border-radius: 12px; font-weight: 700; text-align: center;}
+
+        .empty-state { text-align: center; color: var(--text-muted); margin-top: 100px; font-size: 1.1rem; }
+
+        /* Aggressive Hide number spinners */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+        .boolean-true { color: var(--success); font-weight: 800; font-size: 2rem; }
+        .boolean-false { color: var(--danger); font-weight: 800; font-size: 2rem; }
+
+    </style>
+</head>
+<body>
+
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Shrushti Console</h1>
+            <a href="/team/dashboard" class="back-link">← System Overview</a>
+        </div>
+        <div class="endpoints-list">
+            
+            <div class="category-title">Requests & Connections</div>
+            
+            <a href="?action=send-request" class="endpoint-row" th:classappend="${configureEndpoint == 'send-request'} ? 'active' : ''">
+                <span class="method post">POST</span> <span class="path">/api/v1/friendships/request</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=accept-request" class="endpoint-row" th:classappend="${configureEndpoint == 'accept-request'} ? 'active' : ''">
+                <span class="method put">PUT</span> <span class="path">/api/v1/friendships/{id}/accept</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=reject-request" class="endpoint-row" th:classappend="${configureEndpoint == 'reject-request'} ? 'active' : ''">
+                <span class="method patch">PATCH</span> <span class="path">/api/v1/friendships/{id}/reject</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-status" class="endpoint-row" th:classappend="${configureEndpoint == 'get-status'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/status</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=are-friends" class="endpoint-row" th:classappend="${configureEndpoint == 'are-friends'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/are-friends</span> <button class="run-badge">Run</button>
+            </a>
+
+            <div class="category-title">Network Discovery</div>
+            
+            <a href="?action=get-friends-list" class="endpoint-row" th:classappend="${configureEndpoint == 'get-friends-list'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/{id}/list</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-incoming" class="endpoint-row" th:classappend="${configureEndpoint == 'get-incoming'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/{id}/incoming</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-outgoing" class="endpoint-row" th:classappend="${configureEndpoint == 'get-outgoing'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/{id}/outgoing</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-mutual" class="endpoint-row" th:classappend="${configureEndpoint == 'get-mutual'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/{id}/mutual/{tid}</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=search-friendships" class="endpoint-row" th:classappend="${configureEndpoint == 'search-friendships'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/{id}/search</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=get-friend-notifications" class="endpoint-row" th:classappend="${configureEndpoint == 'get-friend-notifications'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/{id}/notifications</span> <button class="run-badge">Run</button>
+            </a>
+            <a href="?action=friend-count" class="endpoint-row" th:classappend="${configureEndpoint == 'friend-count'} ? 'active' : ''">
+                <span class="method get">GET</span> <span class="path">/api/v1/friendships/{id}/count</span> <button class="run-badge">Run</button>
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <h2>Friendship Context</h2>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-val" th:text="${activeUserId}">1</div>
+                <div class="stat-lab">Global Identity ID</div>
+            </div>
+        </div>
+
+        <!-- Mode: RESULT -->
+        <div th:if="${mode == 'result'}" class="config-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>System Response: <span th:text="${executedEndpoint}" style="color: var(--primary);"></span></h3>
+                <a href="/shrushti/services" style="color: var(--text-muted); text-decoration: none;">Clear</a>
+            </div>
+
+            <div th:if="${resultType == 'friendshipList'}">
+                <table class="data-table" th:if="${resultData != null and !resultData.isEmpty()}">
+                    <tr><th>Friendship ID</th><th>User 1</th><th>User 2</th><th>Status</th></tr>
+                    <tr th:each="f : ${resultData}">
+                        <td th:text="${f.friendshipID}"></td>
+                        <td th:text="${f.user1 != null ? f.user1.username : 'N/A'}"></td>
+                        <td th:text="${f.user2 != null ? f.user2.username : 'N/A'}"></td>
+                        <td th:text="${f.status}"></td>
+                    </tr>
+                </table>
+                <div th:if="${resultData == null or resultData.isEmpty()}">No records found.</div>
+            </div>
+
+            <div th:if="${resultType == 'userList'}">
+                <table class="data-table">
+                    <tr><th>ID</th><th>Username</th><th>Email</th></tr>
+                    <tr th:each="user : ${resultData}">
+                        <td th:text="${user.userID}"></td>
+                        <td th:text="${user.username}"></td>
+                        <td th:text="${user.email}"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div th:if="${resultType == 'genericList'}">
+                <pre style="background: #f1f5f9; padding: 15px; border-radius: 8px; font-size: 0.8rem;" th:text="${#objects.nullSafe(resultData, 'No data')}"></pre>
+            </div>
+
+            <div th:if="${resultType == 'count'}"><div class="huge-stat" th:text="${resultData}"></div></div>
+            
+            <div th:if="${resultType == 'boolean'}" style="text-align: center; padding: 20px;">
+                <div th:if="${resultData == true}" class="boolean-true">CONNECTED</div>
+                <div th:if="${resultData == false}" class="boolean-false">NOT CONNECTED</div>
+                <p style="margin-top: 10px; font-weight: 700; color: var(--text-muted);">Relationship Status</p>
+            </div>
+
+            <div th:if="${resultType == 'string'}"><div class="alert-success" th:text="${resultData}"></div></div>
+            <div th:if="${resultType == 'error'}"><div class="alert-error" th:text="${resultData}"></div></div>
+        </div>
+
+        <!-- Mode: CONFIGURE -->
+        <div th:if="${mode == 'configure' and configureEndpoint != 'idle'}" class="config-card">
+            <div class="attribution-badge">ALLOCATED SERVICE: FRIENDSHIP GRAPH</div>
+            <h3>Configure Request: <span th:text="${configureEndpoint}" style="color: var(--primary);"></span></h3>
+            
+            <form th:action="@{/shrushti/execute}" method="POST">
+                <input type="hidden" name="endpoint" th:value="${configureEndpoint}">
+
+                <div th:if="${configureEndpoint == 'get-incoming' or configureEndpoint == 'get-outgoing' or configureEndpoint == 'get-friends-list' or configureEndpoint == 'friend-count' or configureEndpoint == 'get-friend-notifications'}">
+                    <p style="margin-bottom: 20px; color: var(--text-muted);">Operation targeting currently logged-in user context. No parameters required.</p>
+                </div>
+
+                <div th:if="${configureEndpoint == 'send-request' or configureEndpoint == 'are-friends' or configureEndpoint == 'get-mutual' or configureEndpoint == 'get-status'}">
+                    <div class="form-group"><label>Target User ID:</label><input type="number" name="targetUserId" required onwheel="this.blur()"></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'accept-request' or configureEndpoint == 'reject-request'}">
+                    <div class="form-group"><label>Friendship ID:</label><input type="number" name="targetUserId" required onwheel="this.blur()"></div>
+                </div>
+
+                <div th:if="${configureEndpoint == 'search-friendships'}">
+                    <div class="form-group"><label>Search Query:</label><input type="text" name="keyword" required placeholder="Name..."></div>
+                </div>
+
+                <button type="submit" class="submit-btn">Execute Operation</button>
+            </form>
+        </div>
+
+        <div th:if="${mode == 'configure' and configureEndpoint == 'idle'}" class="empty-state">
+            <p>Select a friendship operation from the sidebar.</p>
+        </div>
+
+    </div>
+    
+    <script>
+        const sidebarList = document.querySelector('.endpoints-list');
+        const mainContent = document.querySelector('.main-content');
+        
+        // Restore scroll positions
+        if(sidebarList && sessionStorage.getItem('dekho_sidebarScroll_shrushti')) {
+            sidebarList.scrollTop = sessionStorage.getItem('dekho_sidebarScroll_shrushti');
+        }
+        if(mainContent && sessionStorage.getItem('dekho_mainScroll_shrushti')) {
+            mainContent.scrollTop = sessionStorage.getItem('dekho_mainScroll_shrushti');
+        }
+
+        // Save scroll positions before page changes
+        window.addEventListener('beforeunload', () => {
+            if(sidebarList) sessionStorage.setItem('dekho_sidebarScroll_shrushti', sidebarList.scrollTop);
+            if(mainContent) sessionStorage.setItem('dekho_mainScroll_shrushti', mainContent.scrollTop);
+        });
+
+        document.querySelectorAll('.endpoint-row').forEach(row => {
+            row.addEventListener('click', () => {
+                if(sidebarList) sessionStorage.setItem('dekho_sidebarScroll_shrushti', sidebarList.scrollTop);
+                if(mainContent) sessionStorage.setItem('dekho_mainScroll_shrushti', mainContent.scrollTop);
+            });
+        });
+    </script>
+</body>
+</html>

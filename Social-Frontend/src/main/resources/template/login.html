@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Platform Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #3b82f6; 
+            --primary-light: rgba(59, 130, 246, 0.1);
+            --border: #cbd5e1;
+            --btn-run: #f59e0b;
+            --btn-run-hover: #d97706;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--bg-main);
+            color: var(--text-main); 
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .auth-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted); font-size: 1rem; font-weight: 600; margin-bottom: 40px;
+        }
+
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-family: inherit; font-size: 1rem; color: var(--text-main); background: var(--bg-main);
+        }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+        .submit-btn {
+            background: var(--primary); color: white; padding: 15px; border: none; width: 100%;
+            border-radius: 8px; font-weight: 800; font-family: inherit; font-size: 1.1rem; cursor: pointer;
+            margin-top: 10px; transition: all 0.2s;
+        }
+        .submit-btn:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px var(--primary-light); }
+        
+        .alert-error {
+            background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; padding: 15px; border-radius: 8px; font-weight: 600; margin-bottom: 20px;
+        }
+        .alert-success {
+            background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 15px; border-radius: 8px; font-weight: 600; margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <h1>Microservice Portal</h1>
+        <p class="subtitle">Authenticate to access team dashboard</p>
+
+        <div th:if="${param.error}" class="alert-error">
+            Invalid credentials. Access denied.
+        </div>
+        <div th:if="${param.logout}" class="alert-success">
+            Securely disconnected from session.
+        </div>
+        <div th:if="${param.registered}" class="alert-success">
+            System identity assigned successfully. Proceed to login.
+        </div>
+
+        <form action="/login" method="post">
+            <div class="form-group">
+                <label>System Username</label>
+                <input type="text" name="username" placeholder="user_id" required>
+            </div>
+            <div class="form-group">
+                <label>Security Key</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="submit-btn">Authorize Access</button>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Social Media Platform Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --primary: #4f46e5; 
+            --primary-light: #eef2ff;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --radius: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--bg-main);
+            color: var(--text-main); 
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 60px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+        }
+
+        .header-left h1 {
+            font-size: 1.8rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-left p {
+            color: var(--text-muted); font-size: 0.95rem; font-weight: 600; margin-top: 2px;
+        }
+
+        .logout-btn {
+            background: white;
+            color: var(--danger);
+            border: 1px solid var(--border);
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-family: inherit; font-weight: 700; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s;
+            text-decoration: none;
+        }
+        .logout-btn:hover {
+            border-color: var(--danger); background: #fef2f2;
+        }
+
+        .team-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 5%; /* Responsive padding */
+            overflow-x: auto; /* Allow scroll if screen too narrow */
+            width: 100%;
+        }
+
+        .team-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 30px;
+            width: max-content; /* Ensure row takes full width of its content */
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .team-card {
+            flex: 0 0 240px; /* Force fixed width for horizontal alignment */
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 35px 25px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .team-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 20px 25px -5px rgb(79 70 229 / 0.2);
+        }
+
+        .avatar-oval {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            object-fit: cover;
+            border: 3px solid var(--primary-light);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            background: var(--bg-main);
+        }
+
+        .member-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .member-role {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+        }
+        
+        .services-list {
+            list-style: none;
+            width: 100%;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        .services-list li {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-main);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .services-list li::before {
+            content: "•";
+            color: var(--primary);
+            margin-right: 8px;
+            font-weight: 900;
+        }
+
+        /* Hide number spinners */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-left">
+            <h1>Social Media Platform</h1>
+            <p>Active Session ID: <span th:text="${session.currentUserId}"></span></p>
+        </div>
+        <a href="/logout" class="logout-btn">Log Out</a>
+    </div>
+
+    <div class="team-container">
+        <div class="team-row">
+            
+            <!-- Mansi -->
+            <a href="/mansi/services" class="team-card">
+                <img src="/images/Mansi.jpg.jpeg" alt="Mansi" class="avatar-oval">
+                <div class="member-name">Mansi Chate</div>
+                <div class="member-role">Communications</div>
+                <ul class="services-list">
+                    <li>Messages Graph</li>
+                    <li>Notifications</li>
+                </ul>
+            </a>
+
+            <!-- Gaurav -->
+            <a href="/gaurav/services" class="team-card">
+                <img src="/images/Gaurav.jpeg" alt="Gaurav" class="avatar-oval">
+                <div class="member-name">Gaurav Tiwari</div>
+                <div class="member-role">Identity & Posts</div>
+                <ul class="services-list">
+                    <li>Users Engine</li>
+                    <li>Posts Registry</li>
+                </ul>
+            </a>
+
+            <!-- Haji -->
+            <a href="/haji/services" class="team-card">
+                <img src="/images/Haji.jpg.jpeg" alt="Haji" class="avatar-oval">
+                <div class="member-name">Haji Shaikh</div>
+                <div class="member-role">Clusters</div>
+                <ul class="services-list">
+                    <li>Groups Network</li>
+                    <li>Membership</li>
+                </ul>
+            </a>
+
+            <!-- Shrushti -->
+            <a href="/shrushti/services" class="team-card">
+                <img src="/images/Shrushti.jpg.jpeg" alt="Shrushti" class="avatar-oval">
+                <div class="member-name">Shrushti Gurav</div>
+                <div class="member-role">Relations</div>
+                <ul class="services-list">
+                    <li>Friendship Tree</li>
+                    <li>Pending Requests</li>
+                </ul>
+            </a>
+
+            <!-- Satyan -->
+            <a href="/satyan/services" class="team-card">
+                <img src="/images/Satyan.jpeg" alt="Satyan" class="avatar-oval">
+                <div class="member-name">Satyan Jadhav</div>
+                <div class="member-role">Engagement</div>
+                <ul class="services-list">
+                    <li>Likes Toggle</li>
+                    <li>Comments Stream</li>
+                </ul>
+            </a>
+
+        </div>
+    </div>
+
+</body>
+</html>
